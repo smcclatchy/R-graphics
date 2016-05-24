@@ -1,0 +1,111 @@
+---
+title: "Scatterplots and histograms with qplot()"
+author: "Sue McClatchy"
+date: "October 15, 2015"
+output: word_document
+---
+
+## Learning Objectives
+1. Load data from a URL.
+2. Build a plot with qplot().
+
+## Introduction
+R is a powerful language for data exploration and visualization. We will use the ggplot package developed by Hadley Wickham to build publication quality graphics. 
+
+Load the ggplot library.
+
+```{r}
+library(ggplot2)
+```
+
+Read in data by specifying a URL for the file argument. This file contains baseline survey data for the 8 inbred Collaborative Cross founder strains and 54 F1 hybrids. Measurements include blood, cardiovascular, bone, body size, weight, and composition. For more information about this data set, see the [CGDpheno3 data](http://phenome.jax.org/db/q?rtn=projects/details&id=439) at Mouse Phenome Database.
+
+```{r}
+cc <- read.csv(file="http://phenome.jax.org/grpdoc/MPD_projdatasets/CGDpheno3.csv")
+```
+
+Let's look at the structure of the data. *str()* provides the data type for the `r nrow(cc)` rows and `r ncol(cc)` columns in the CC founder strain data. Animals are in rows and measurements in columns.
+
+```{r eval=FALSE}
+str(cc)
+```
+
+How many animals of each strain?
+
+```{r eval=FALSE}
+sort(table(cc$strain))
+```
+
+How many of each by sex?
+
+```{r eval=FALSE}
+table(cc$strain, cc$sex)
+```
+
+## Quick plots with qplot()
+The *qplot()* or quickplot syntax will be very familiar if you use *plot()*. Here, use *qplot()* to create a scatterplot of red blood cells on the x axis by percent reticulocytes on the y.
+
+```{r warning=FALSE}
+qplot(x=RBC, y=pctRetic, data = cc)
+```
+
+### Geoms
+*qplot()* and *ggplot()* define the type of plot you produce using geometric objects or *geoms*. The default geom for plotting x-y data points is a point, producing a scatterplot. If you only specify x, the default plot is a histogram. Let's try a histogram by specifying only x and not y.
+
+```{r warning=FALSE, message=FALSE}
+qplot(x=RBC, data = cc)
+```
+
+You can specify a list of *geoms* to apply to the plot, and they will be applied in the order given. Scatterplot red blood cells and reticulocytes, adding a smoother to identify any trend in the data. The default smoother is *loess*, which uses a smooth local regression.
+
+```{r warning=FALSE, message=FALSE}
+qplot(x=RBC, 
+      y=pctRetic, 
+      data = cc, 
+      geom = c("point", "smooth"))
+```
+
+Notice that at the extreme values uncertainty in the relationship increases, as indicated by the point-wise confidence interval. You can turn off the point-wise confidence interval using the *se* argument. 
+
+```{r warning=FALSE, message=FALSE}
+qplot(x=RBC, 
+      y=pctRetic, 
+      data = cc, 
+      geom = c("point", "smooth"), 
+      se=FALSE)
+```
+
+You can color the data points by sex of the animal.
+
+```{r warning=FALSE}
+qplot(x=RBC, 
+      y=pctRetic,
+      data=cc, 
+      colour=sex)
+```
+
+Add a title and label the axes. Add a smoother for males and females.
+
+```{r warning=FALSE, message=FALSE}
+qplot(x=RBC, 
+      y=pctRetic,
+      data=cc, 
+      geom = c("point", "smooth"), 
+      colour=sex, 
+      xlab="red blood cell count (n/uL)",
+      ylab = "percent reticulocytes",
+      main = "Percent Reticulocytes by Red Blood Cell Count")
+```
+
+Use facets to view males and females separately.
+
+```{r warning=FALSE, message=FALSE}
+qplot(x=RBC,
+      y=pctRetic, 
+      data=cc, 
+      geom = c("point", "smooth"),
+      facets = . ~ sex, 
+      colour=sex)
+```
+
+> Code Challenge: Choose two measurements from the cc data to scatterplot  with qplot(). Label the axes and include a title. Add a smoother and color the points by sex. Try facets to view the sexes separately.

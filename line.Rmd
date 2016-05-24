@@ -1,0 +1,144 @@
+---
+title: "Line plot"
+author: "Sue McClatchy"
+date: "October 19, 2015"
+output: html_document
+---
+
+## Learning Objectives
+1. Load data from a URL.
+2. Convert date objects and formats.
+3. Transform the scale of a plot.
+4. Specify the breaks in the x and y axes.
+5. Use plot annotations, custom axis labels, and axis themes.
+6. Save plot as a PDF.
+
+## Introduction
+Time series plots are valuable but can be tricky to create because date and time formats in computing are not straightforward. Here we'll recreate the plot showing growth in the [Sequence Read Archive](http://www.ncbi.nlm.nih.gov/Traces/sra/) from 2008 to present.
+
+Load the ggplot and scales libraries.
+
+```{r}
+library(ggplot2)
+library(scales)
+```
+
+Read in the [Sequence Read Archive](http://www.ncbi.nlm.nih.gov/Traces/sra/sra_stat.cgi) database growth file  and view structure.
+
+```{r}
+sra <- read.csv("http://www.ncbi.nlm.nih.gov/Traces/sra/sra_stat.cgi")
+str(sra)
+```
+
+The data have `r nrow(sra)` rows and `r ncol(sra)` columns. The first column is listed as a factor when in fact it is a date in the MM/DD/YYYY format. To place dates on the x-axis in proper order, convert the first column to a date object in the YYYY-MM-DD format. First check to make sure that the first several dates will be converted correctly.
+
+```{r}
+class(sra$date)
+class(as.Date(sra$date, format = "%m/%d/%Y"))
+head(sra$date)
+head(as.Date(sra$date, format = "%m/%d/%Y"))
+```
+
+The first several dates convert correctly from MM/DD/YYYY to YYYY-MM-DD format. Now convert all dates to the new format, and convert them from a factor variable to a date variable.
+
+```{r}
+sra$date <- as.Date(sra$date, format = "%m/%d/%Y")
+class(sra$date)
+head(sra$date)
+str(sra)
+```
+
+Plot the number of bases and open access bases in SRA by layering lines over the time series on the x-axis.
+
+```{r}
+ggplot(sra, aes(date)) + 
+  geom_line(aes(y = bases)) + 
+  geom_line(aes(y = open_access_bases))
+```
+
+Change the line colors and sizes.
+
+```{r}
+ggplot(sra, aes(date)) + 
+  geom_line(aes(y = bases), colour = "blue", size = 1.5) + 
+  geom_line(aes(y = open_access_bases), colour = "yellow", size = 1.5)
+```
+
+The plot seems to show zero bases until the year 2009. Check the smallest number of total
+bases and open access bases in the data.
+
+```{r}
+min(sra$bases)
+min(sra$open_access_bases)
+max(sra$bases)
+max(sra$open_access_bases)
+```
+
+The smallest number of bases is `r min(sra$bases)`, and the largest number is `r max(sra$bases)`. The smallest number of open access bases is `r min(sra$open_access_bases)`, and the largest number is `r max(sra$open_access_bases)`. We need to transform the y axis to logarithmic for accurate display, manually define the y axis breaks and supply simpler superscripted exponents on the y axis labels.
+
+```{r}
+ggplot(sra, aes(date)) + 
+  geom_line(aes(y = bases), colour = "blue", size = 1.5) + 
+  geom_line(aes(y = open_access_bases), colour = "yellow", size = 1.5) +
+  scale_y_log10(breaks=c(1e+10, 1e+11, 1e+12, 1e+13, 1e+14, 1e+15),
+                labels = expression("10"^"10", "10"^"11", "10"^"12", "10"^"13", "10"^"14",
+                                    "10"^"15"))
+```
+
+Compare to the plot at the [Sequence Read Archive](http://www.ncbi.nlm.nih.gov/Traces/sra/).
+Notice the difference in x and y axis labels and starting points. Our plot starts in the year 2000 with `r min(sra$open_access_bases)` bases. The [Sequence Read Archive](http://www.ncbi.nlm.nih.gov/Traces/sra/) plot starts before the year 2009 with 10^12 bases.
+
+How many data points are there in each year?
+
+```{r}
+table(format(sra$date, "%Y"))
+```
+
+Remove the single measurements in 2000 and 2007. 
+
+```{r}
+which(format(sra$date, "%Y")==c("2000", "2007"))
+sra <- sra[-(1:2),]
+table(format(sra$date, "%Y"))
+```
+
+Save the plot to a variable.
+
+```{r}
+logplot <- ggplot(sra, aes(date)) +
+  geom_line(aes(y = bases), colour = "blue", size = 1.5) + 
+  geom_line(aes(y = open_access_bases), colour = "yellow", size = 1.5) +
+  scale_y_log10(breaks=c(1e+10, 1e+11, 1e+12, 1e+13, 1e+14, 1e+15),
+                labels = expression("10"^"10", "10"^"11", "10"^"12", "10"^"13", "10"^"14",
+                                    "10"^"15"))
+logplot
+```
+
+Specify the breaks in the x-axis so that each year is shown.
+
+```{r}
+logplot + scale_x_date(labels = date_format("%Y"), breaks = date_breaks("years"))
+```
+
+Add text annotations to the plot, axis labels, and a title.
+
+```{r}
+logplot + scale_x_date(labels = date_format("%Y"), breaks = date_breaks("years")) + 
+  annotate("text", x=sra$date[1100], y=1.6e+15, label="total bases") + 
+  annotate("text", x=sra$date[1700], y=1.25e+14, label="open access bases") + 
+  xlab("Year") + 
+  ylab("Number of bases") + 
+  theme(axis.title.x=element_text(vjust=-.5)) + 
+  ggtitle("Sequence Read Archive Database Growth")
+```
+
+Save the plot as a PDF.
+
+```{r}
+pdf("SRA-database-growth.pdf")
+print(logplot)
+dev.off()
+```
+
+> Code Challenge: Plot bytes and open access bytes. Change to log scale. Color the lines, add text annotations, label the axes and add a title. 
+

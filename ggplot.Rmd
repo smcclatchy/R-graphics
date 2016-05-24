@@ -1,0 +1,203 @@
+---
+title: "Scatterplots, histograms, and boxplots with ggplot()"
+author: "Sue McClatchy"
+date: "October 19, 2015"
+output: html_document
+---
+
+## Learning Objectives
+1. Build a layered plot with ggplot().
+2. Save plot to a file.
+3. Subset data.
+
+## Introduction
+*qplot()* is the simplest to use and its syntax is familiar, but gives the least control. Now let's try *ggplot()*. The base syntax is *ggplot(data, mapping) + layer()*. 
+
+Load the ggplot library.
+
+```{r}
+library(ggplot2)
+```
+
+Load the data.
+
+```{r}
+cc <- read.csv(file="http://phenome.jax.org/grpdoc/MPD_projdatasets/CGDpheno3.csv")
+```
+
+### Histogram
+
+The ggplot function *aes()* maps data variables to visual properties of the plot.
+```{r eval = FALSE}
+ggplot(cc, aes(x=RBC))
+```
+
+While *aes()* maps data variables to visuals in the plot, it doesn't actually execute the plot. We've included a mapping of red blood cells on the x axis and have indicated the cc data, but *ggplot()* requires a layer. Specifically the layer must be a geom, or geometric object in the plot. Add a layer with *geom_histogram()*.
+
+```{r message=FALSE}
+ggplot(cc, aes(x=RBC)) + 
+  geom_histogram()
+```
+
+The default binwidth (or bar width) is the range of the data divided by 30. Set the binwidth so that the bars break at each 0.1 increment.
+```{r message=FALSE}
+ggplot(data = cc, aes(x = RBC)) + 
+  geom_histogram(binwidth = 0.1)
+```
+
+Draw a vertical line through the mean value. Outline each bar in black and fill them with white.
+```{r message=FALSE}
+ggplot(cc, aes(x=RBC)) +
+  geom_histogram(binwidth = 0.1, colour="black", fill = "white") +
+  geom_vline(aes(xintercept=mean(RBC, na.rm=T)), color="red", linetype="dashed", size=1)
+```    
+
+Draw vertical lines for the mean by sex. Red is the mean value for females, blue for males.
+```{r message=FALSE}
+ggplot(cc, aes(x=RBC)) +
+  geom_histogram(binwidth = 0.1, colour="black", fill = "white") +
+  geom_vline(aes(xintercept=mean(RBC[sex == "f"], na.rm=T)), color="red", linetype="dashed", size=1) +
+  geom_vline(aes(xintercept=mean(RBC[sex == "m"], na.rm=T)), color="blue", linetype="dashed", size=1)
+```  
+
+If you'd like to know whether or not the difference in means is significant, perform a t-test with the *t.test()* function.
+
+The histogram seems to be bimodal. Overlay separate histograms by sex. Lighten the colors with the alpha argument to geom_histogram.
+```{r message=FALSE, warning=FALSE}
+ggplot(data = cc, aes(x = RBC, fill = sex)) + 
+  geom_histogram(binwidth = 0.1, alpha = .5, position = "identity")
+```
+
+It appears that only the histogram for females is bimodal. The male histogram appears to have a normal distribution.
+
+Display density plots instead of histograms. Use the alpha argument to *geom_density* to lighten the colors.
+
+```{r warning=FALSE}
+ggplot(cc, aes(x=RBC, fill=sex)) + 
+  geom_density(alpha=0.5)
+```
+
+### Scatterplot
+Plot red blood cell counts by strain. Here, data = cc, mapping = red blood cells by strain. The layer is geom_point(), .
+```{r warning=FALSE}
+ggplot(data = cc, aes(x = strain, y = RBC)) + 
+  geom_point()
+```
+
+Color points by sex.
+```{r warning=FALSE}
+ggplot(data = cc, aes(x = strain, y = RBC)) +
+  geom_point(aes(colour = sex))
+```
+
+The strain names on the x-axis are illegible. We could switch x and y axes and place strain names on the y-axis for legibility, however, many geoms in ggplot don't treat the x and y axes equally. For this reason, we'll use *coord_flip()* to place strains on the y axis and red blood cells on the x. This should help readability. Later we will apply a statistical summary to values on the y-axis, so we'll leave RBC counts on the y and flip the coordinates. 
+```{r warning=FALSE}
+ggplot(data = cc, aes(x = strain, y = RBC)) + 
+  geom_point(aes(colour = sex)) + 
+  coord_flip()
+```
+
+Reorder strains by mean RBC count. Save plot as a variable.
+```{r warning=FALSE}
+rbc_plot <- ggplot(data = cc, aes(x = reorder(strain, RBC, FUN = "mean", na.rm = TRUE), y = RBC)) + 
+  geom_point(aes(colour = sex)) + 
+  coord_flip()
+rbc_plot
+```
+
+The strain names are very crowded, so shrink the size of the labels on the y axis using a *theme()*.
+
+```{r warning=FALSE}
+rbc_plot <- rbc_plot + theme(axis.text.y = element_text(size = rel(0.5)))
+rbc_plot
+```
+
+Label the axes. Remember that y and x axes are flipped, so flip the labels.
+```{r warning=FALSE}
+rbc_plot <- rbc_plot + xlab("strain") + ylab("red blood cell count (n/uL) ")
+rbc_plot
+```
+
+Apply a statistical summary function (mean) to red blood cell count. We wouldn't be able to do this if we hadn't flipped the axes earlier with *coord_flip()*.
+```{r warning=FALSE}
+rbc_plot <- rbc_plot + stat_summary(fun.y = "mean", geom = "point", colour = "mediumpurple4")
+rbc_plot
+```
+
+Add a title.
+```{r warning=FALSE}
+rbc_plot <- rbc_plot + ggtitle("Mean Red Blood Cells by Strain")
+rbc_plot
+```
+
+Print plot to scalable vector graphics (svg) file. Replace svg below with pdf for a PDF file, or png for a PNG file.
+```{r message=FALSE, warning=FALSE}
+svg("rbc-strain-means.svg", width= 8, height = 9)
+print(rbc_plot)
+dev.off()
+```
+
+### Boxplots
+Boxplots summarize the distribution of continuous variables against discrete ones. Create a boxplot of red blood cells by strain by changing the *geom*. Outliers are shown as purple dots.
+
+Select a subset of the strains to create boxplots. Choose strains with the 3 highest and 3 lowest mean red blood cell counts.
+```{r message=FALSE}
+subset_cc <- subset(cc, strain %in% c("ACASTF1", "APWKF1", "B6CASTF1", 
+                                      "A/J", "NODAF1", "NOD/ShiLtJ") == TRUE)
+```
+
+Create boxplots from the subset. Re-order by mean RBC value as before.
+```{r message=FALSE}
+ggplot(data = subset_cc, 
+                      aes(x = reorder(strain, RBC, FUN = "mean", na.rm = TRUE),
+                          y = RBC)) + geom_boxplot()
+```
+
+This time there's no need to flip the axes since the strain names are legible on the x-axis. We also won't apply a statistical summary (the mean in prior example) to y-axis values this time. We have already re-ordered strains by mean RBC values but won't plot a point indicating the mean for each strain. We will plot each data point over the boxplots by adding a scatterplot layer with *geom_point()*. Color the points by sex.
+
+```{r message=FALSE}
+ggplot(data = subset_cc, 
+                      aes(x = reorder(strain, RBC, FUN = "mean", na.rm = TRUE),
+                          y = RBC)) + geom_boxplot()  +
+  geom_point(aes(color = sex))
+```
+
+Separate boxplots by sex. Remove the points and indicate outliers as purple triangles. Save plot as a variable.
+```{r message=FALSE}
+rbc_boxplot <- ggplot(data = subset_cc,
+                      aes(x = reorder(strain, RBC, FUN = "mean", na.rm = TRUE),
+                          y = RBC)) +
+  geom_boxplot(aes(colour = sex),
+               outlier.colour = "mediumpurple", outlier.shape = 17)
+rbc_boxplot
+```
+
+The upper whisker extends to the highest value within 1.5 * inter-quartile range, (distance between first and third quartiles). The lower whisker extends to the lowest value within 1.5 * IQR of the hinge. Data beyond the end of the whiskers (outliers) are plotted as triangles.
+
+Rotate the strain labels by 45 degrees and lower them vertically so that they don't run into the plot area.
+```{r message=FALSE}
+rbc_boxplot <- rbc_boxplot + theme(axis.text.x = element_text(angle = 45, vjust = 0.7))
+rbc_boxplot
+```
+
+Add x and y axis labels.
+```{r message=FALSE}
+rbc_boxplot <- rbc_boxplot + xlab("strain") + 
+  ylab("red blood cell count (n/uL)")
+rbc_boxplot
+```
+
+Add a title.
+```{r message=FALSE}
+rbc_boxplot <- rbc_boxplot + ggtitle("Red Blood Cell Distribution by Strain and Sex")
+rbc_boxplot
+```
+
+Output the plot to a PDF file. Set width and height.
+```{r message=FALSE, warning=FALSE}
+pdf("rbc-boxplot.pdf", width= 8, height = 9)
+print(rbc_boxplot)
+dev.off()
+```
+
+> Code Challenge: Create boxplots from one measurement against strain in the cc data using ggplot(). Label the axes and include a title. Add extras such as facets by sex, reordered means, flipped axes, or smaller axis text. Try subsetting the data and boxplotting the data subset.
