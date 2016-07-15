@@ -1,21 +1,23 @@
 ---
-title: "Line plot"
+title: "Time series plots with ggplot"
 author: "Sue McClatchy"
 date: "July 14, 2016"
 output: html_document
 ---
+
 
 ## Learning Objectives
 1. Load data from a URL.
 2. Convert date objects and formats.
 3. Log-transform the scale of a plot.
 4. Specify breaks in the x and y axes.
-5. Use plot annotations, custom axis labels, and axis themes.
+5. Use plot annotations and custom axis labels.
 6. Save plot as a PDF.
 
-## Introduction
+## Preliminaries
 Time series plots are valuable but can be tricky to create because date and time formats in computing are not straightforward. Here we'll recreate the plot showing growth in the [Sequence Read Archive](http://www.ncbi.nlm.nih.gov/Traces/sra/) from 2008 to present.
 
+#### Load packages and libraries
 Load the ggplot and scales libraries. You'll need to install the packages
 first if you haven't done so already. Install them from the Packages tab,
 or use the install.packages() command. Use double quotes around the package
@@ -37,6 +39,7 @@ version
 
 The version of R is given as version.string, followed by the nickname for the version.
 
+#### Load data and explore
 Read in the [Sequence Read Archive](http://www.ncbi.nlm.nih.gov/Traces/sra/sra_stat.cgi) database growth file  and view structure.
 
 ```{r}
@@ -44,7 +47,7 @@ sra <- read.csv("http://www.ncbi.nlm.nih.gov/Traces/sra/sra_stat.cgi")
 str(sra)
 ```
 
-The data have `r nrow(sra)` rows and `r ncol(sra)` columns. The first column is listed as a factor when in fact it is a date in the MM/DD/YYYY format. A factor is a categorical variable (i.e. red, green, blue, or low, middle, and high-income). Date variables are a data type that includes month, day and year, and that have their own specific function to extract weekdays or count the number of days until an event, for example. To place dates on the x-axis in proper order, convert the first column to a date object in the YYYY-MM-DD format. First check to make sure that the first several dates will be converted correctly.
+The data have `r nrow(sra)` rows and `r ncol(sra)` columns. The first column is listed as a factor when in fact it is a date in the MM/DD/YYYY format. A factor is a categorical variable (i.e. red, green, blue, or low, middle, and high-income). Date variables are a data type that includes month, day and year, and that have their own specific functions to extract weekdays or count the number of days until an event, for example. To place dates on the x-axis in proper order, convert the first column to a date object in the YYYY-MM-DD format. First check to make sure that the first several dates will be converted correctly.
 
 ```{r}
 class(sra$date)
@@ -53,6 +56,7 @@ head(sra$date)
 head(as.Date(sra$date, format = "%m/%d/%Y"))
 ```
 
+#### Convert date format
 The first several dates convert correctly from MM/DD/YYYY to YYYY-MM-DD format, which is the default date format in R and the International Standards Organization (ISO) standard date format. Now convert all dates to the new format, and convert them from a factor variable to a date variable.
 
 ```{r}
@@ -62,6 +66,7 @@ head(sra$date)
 str(sra)
 ```
 
+## Plotting with ggplot
 Plot the number of bases and open access bases in SRA by layering lines over the time series on the x-axis. Use the ggplot() function, which is found in the ggplot2 library. Quick reminder of ggplot syntax: ggplot(data, mapping) + layer(). 
 Start by plotting bases alone on the y-axis.
 ```{r}
@@ -94,6 +99,7 @@ max(sra$bases)
 max(sra$open_access_bases)
 ```
 
+#### Log-transform the y-axis
 The smallest number of bases is `r format(min(sra$bases), digits = 3)`, and the largest number is `r format(max(sra$bases), digits = 3)`. The smallest number of open access bases is `r format(min(sra$open_access_bases), digits = 3)`, and the largest number is `r format(max(sra$open_access_bases), digits = 3)`. We need to transform the y axis to logarithmic for accurate display, so that the plot doesn't show values of zero that don't exist.
 ```{r}
 ggplot(data = sra, mapping = aes(date)) + 
@@ -102,6 +108,7 @@ ggplot(data = sra, mapping = aes(date)) +
   scale_y_log10()
 ```
 
+#### Specify axis breaks and labels
 Now manually define the y axis breaks so that each order of magnitude is represented.
 ```{r}
 ggplot(data = sra, mapping = aes(date)) + 
@@ -133,7 +140,7 @@ Remove the single measurements in years 2000 and 2007. These two data points ext
 the line backward in time and give misleading information about the actual growth in the number of bases by making it appear as if data collection was sequential year-over-year. In fact, there were many years missing data altogether. Start at year 2008, the first year of sustained,  consecutive data collection.
 
 ```{r}
-which(format(sra$date, "%Y")==c("2000", "2007"))
+which(format(sra$date, "%Y") %in% c("2000", "2007"))
 sra <- sra[-(1:2),]
 table(format(sra$date, "%Y"))
 ```
@@ -156,6 +163,7 @@ logplot <- logplot + scale_x_date(labels = date_format("%Y"), breaks = date_brea
 logplot
 ```
 
+#### Add text annotations, axis labels, and title
 Add text annotations to the plot to label the lines for total and open access bases.
 ```{r}
 logplot <- logplot + 
@@ -180,6 +188,7 @@ logplot <- logplot +
 logplot
 ```
 
+#### Save the plot as a PDF file
 Save the plot as a PDF using the pdf() command. You can also save as a png(), jpeg(), tiff(), or bmp() using the corresponding command. Provide a file name inside the parentheses surrounded by double quotes. Be sure to turn the graphics device off afterward to return graphics output to your plot window in RStudio. Use dev.off() to turn off the graphics device.
 ```{r}
 pdf(file = "SRA-database-growth.pdf")
@@ -189,5 +198,5 @@ dev.off()
 
 Now locate the file on your machine and open it. Compare with the plot at the [Sequence Read Archive](http://www.ncbi.nlm.nih.gov/Traces/sra/).
 
-> Code Challenge: Plot bytes and open access bytes. Change to log scale. Color the lines, add text annotations, label the axes and add a title. Save the plot to a variable and open the file to view your plot. 
+> Code Challenge: Plot bytes and open access bytes. Change to log scale. Color the lines, add text annotations, label the axes and add a title. Save the plot to a variable. Print the variable to a file and open the file to view your plot. 
 
