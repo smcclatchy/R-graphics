@@ -1,0 +1,212 @@
+---
+title: "Boxplots with ggplot"
+author: "Sue McClatchy"
+date: "July 20, 2016"
+output: html_document
+---
+
+## Learning Objectives 
+> * Load data from a URL.
+> * Produce a scatterplot of data.
+> * Build and plot a linear model.
+> * Evaluate model quality and significance.
+
+## Preliminaries
+Bar charts are useful for displaying count data, for example, but are often used to portray statistical information that they don't represent well ([see 'Kick the bar chart habit'. 2014. Nat Meth, 11: 113])(http://www.nature.com/nmeth/journal/v11/n2/full/nmeth.2837.html). As an alternative to bar charts, we'll build boxplots from a multi-system survey of mouse physiology in 8 inbred founder strains and 54 F1 hybrids of the Collaborative Cross. The study is described in [Lenarcic et al, 2012](http://www.genetics.org/content/190/2/413.full). For more information about this data set, see the [CGDpheno3 data](http://phenome.jax.org/db/q?rtn=projects/details&id=439) at Mouse Phenome Database. 
+
+#### Load packages and libraries
+Load the ggplot and scales libraries. You'll need to install the packages
+first if you haven't done so already. Install them from the Packages tab,
+or use the install.packages() command. Use double quotes around the package
+name.
+```{r eval = FALSE}
+install.packages("ggplot2")
+```
+
+You only need to install a package once to download it into your machine's library. Once you have installed the package on your machine, you need to load the library in order to use the functions contained in the package.
+```{r}
+library(ggplot2)
+```
+When you load a library you'll get a warning message indicating the R version in which the library was built. If it's different from the R version that you're running, you might occasionally run into problems depending on the library and the functions it contains. To find out what version of R you have, type
+
+```{r}
+version
+```
+
+The version of R is given as version.string, followed by the nickname for the version.
+
+#### Load data
+Load the data from this shortened URL. Mind the double quotes.
+```{r}
+cc_data <- read.csv(file = "http://bit.ly/CGDpheno3")
+```
+
+#### Explore data
+Explore the data variables. The first 4 columns contain strain, sex, and ID numbers. The remaining contain phenotype measurements with abbreviated names.
+```{r}
+names(cc_data)
+```
+
+How many mice? 
+```{r}
+dim(cc_data)
+```
+
+How many mice of each sex? 
+```{r}
+table(cc_data$sex)
+```
+
+How many mice of each strain? 
+```{r}
+table(cc_data$strain)
+```
+
+How many mice of each strain by sex? 
+```{r}
+table(cc_data$sex, cc_data$strain)
+```
+
+How do the first few rows of data look? Note the NAs in the data. These are missing values and can complicate analyses unless specifically addressed. 
+```{r}
+head(cc_data)
+```
+
+## Plotting with [ggplot](http://ggplot2.org/)
+Use the ggplot() function, which is found in the ggplot2 library. Quick reminder of ggplot syntax: ggplot(data, mapping) + layer(). Plot red blood cells by strain.
+```{r fig.height=10, fig.width=10, warning=FALSE}
+ggplot(data = cc_data, mapping = aes(x = strain, y = RBC)) + 
+  geom_boxplot()
+```
+
+In a boxplot, the upper whisker extends to the highest value within 1.5 * inter-quartile range (IQR, or distance between first and third quartiles) and the lower whisker extends to the lowest value within 1.5 * IQR of the hinge. Data beyond the end of the whiskers (outliers) are plotted as points.
+
+It's difficult to distinguish the strain names on the x-axis, so flip the coordinates to place strain on the y-axis and red blood cells on the x-axis. 
+```{r fig.height=10, fig.width=10, warning=FALSE}
+ggplot(data = cc_data, mapping = aes(x = strain, y = RBC)) + 
+  geom_boxplot() + 
+  coord_flip()
+```
+
+Sort the strains by mean red blood cells. Do this by re-ordering strains within the mapping function aes(). Save the plot as a variable.
+```{r fig.height=10, fig.width=10, warning=FALSE}
+ggplot(data = cc_data, mapping = aes(x = reorder(strain, RBC, FUN = "mean", na.rm = TRUE), y = RBC)) + 
+  geom_boxplot() + 
+  coord_flip()
+```
+
+Add a point indicating the mean RBC value for each strain. Add a statistical summary layer to do this. Specify the color, shape and size of the point marking the mean.
+```{r fig.height=10, fig.width=10, warning=FALSE}
+ggplot(data = cc_data, mapping = aes(x = reorder(strain, RBC, FUN = "mean", na.rm = TRUE), y = RBC)) + 
+  geom_boxplot() + 
+  coord_flip() + 
+  stat_summary(fun.y = "mean", geom = "point", colour = "mediumpurple4", shape = 15, size = 2)
+```
+
+You should see a purple square indicating the mean red blood cell value for each strain. Is it the same as the median value for each strain?
+
+Plot the data points over each boxplot. Since ggplot builds a plot layer by layer, the boxplot layer should come before the data points so as not to obscure them.
+```{r fig.height=10, fig.width=10, warning=FALSE}
+ggplot(data = cc_data, mapping = aes(x = reorder(strain, RBC, FUN = "mean", na.rm = TRUE), y = RBC)) + 
+  geom_boxplot() + 
+  geom_point() +
+  coord_flip() + 
+  stat_summary(fun.y = "mean", geom = "point", colour = "mediumpurple4", shape = 15, size = 2)
+```
+
+Color the data points by sex. Save the plot as a variable. To view the plot, type the name of the variable.
+```{r fig.height=10, fig.width=10, warning=FALSE}
+rbc_boxplot <- ggplot(data = cc_data, mapping = aes(x = reorder(strain, RBC, FUN = "mean", na.rm = TRUE),
+                                                    y = RBC)) + 
+  geom_boxplot() + 
+  geom_point(aes(colour = sex)) +
+  coord_flip() + 
+  stat_summary(fun.y = "mean", geom = "point", colour = "mediumpurple4", shape = 15, size = 2)
+rbc_boxplot
+```
+
+Add axis labels. Redefine the plot variable.
+```{r fig.height=10, fig.width=10, warning=FALSE}
+rbc_boxplot <- rbc_boxplot +
+  xlab("strain") + 
+  ylab("red blood cell count (n/uL)")
+rbc_boxplot
+```
+
+Add a title. Redefine the plot variable.
+```{r fig.height=10, fig.width=10, warning=FALSE}
+rbc_boxplot <- rbc_boxplot + 
+  ggtitle("Red Blood Cell Distribution by Strain")
+rbc_boxplot
+```
+
+Select a subset of the strains. Choose strains with the highest and lowest mean and median red blood cell counts.
+Include the parent strains of the F1s.
+```{r fig.height=10, fig.width=10, warning=FALSE}
+subset.cc_data <- subset(cc_data, strain %in% c("ACASTF1", "APWKF1", "CAST/EiJ", "PWK/PhJ",
+                                      "A/J", "NODAF1", "NOD/ShiLtJ") == TRUE)
+```
+
+Create boxplots from the subset. 
+```{r fig.height=10, fig.width=10, warning=FALSE}
+ggplot(data = subset.cc_data, mapping = aes(x = strain, y = RBC)) + 
+  geom_boxplot()
+```
+
+Order by mean RBC value as before. Save the plot as a variable.
+```{r fig.height=10, fig.width=10, warning=FALSE}
+subset_boxplot <- ggplot(data = subset.cc_data,
+                         mapping = aes(x = reorder(strain, RBC, FUN = "mean", na.rm = TRUE),
+                                       y = RBC)) + 
+  geom_boxplot()
+subset_boxplot
+```
+
+This time there's no need to flip the axes since the strain names are legible on the 
+x-axis. 
+Plot the data points by sex. Draw the boxplots first, then layer the data points on top of the boxplots.
+```{r fig.height=10, fig.width=10, warning=FALSE}
+subset_boxplot <- subset_boxplot + 
+  geom_point(aes(colour = sex))
+subset_boxplot
+```
+
+Add a purple square indicating the mean RBC value for each strain.
+```{r fig.height=10, fig.width=10, warning=FALSE}
+subset_boxplot <- subset_boxplot + 
+  stat_summary(fun.y = "mean", geom = "point", colour = "mediumpurple4", shape = 15, size = 2)
+subset_boxplot
+```
+
+Add x and y axis labels.
+```{r fig.height=10, fig.width=10, warning=FALSE}
+subset_boxplot <- subset_boxplot + 
+  xlab("strain") + 
+  ylab("red blood cell count (n/uL)")
+subset_boxplot
+```
+
+Add a title.
+```{r fig.height=10, fig.width=10, warning=FALSE}
+subset_boxplot <- subset_boxplot + 
+  ggtitle("Red Blood Cell Distribution by Strain")
+subset_boxplot
+```
+
+Output the plot to a PDF file. Set width and height. Turn off the output to pdf with the dev.off() command.
+```{r warning=FALSE}
+pdf("subset-boxplot.pdf", width= 8, height = 9)
+print(subset_boxplot)
+dev.off()
+```
+
+Picture a set of bar charts indicating the mean and s.e.m. for each strain. Which plot communicates more information, a bar chart or a box plot?
+
+> Code Challenge: Choose another phenotype to plot as boxplots by strain. Order boxplots by mean phenotype value. Flip the coordinates if necessary to make strain names legible. Add a point indicating the mean strain value. Add data points over the boxplots. Add axis labels and a plot title.
+
+
+## References
+1. Kick the bar chart habit. Nat Meth. 2014;11(2):113. doi: 10.1038/nmeth.2837. 
+2. Lenarcic AB, Svenson KL, Churchill GA, Valdar W. A general Bayesian approach to analyzing diallel crosses of inbred strains. Genetics. 2012 Feb 1;190(2):413-35.
+3. Spitzer M, Wildenhain J, Rappsilber J, Tyers M. BoxPlotR: a web tool for generation of box plots. Nat Meth. 2014;11(2):121-2. doi: 10.1038/nmeth.2811.
+4. Krzywinski M, Altman N. Points of Significance: Visualizing samples with box plots. Nat Meth. 2014;11(2):119-20. doi: 10.1038/nmeth.2813.
