@@ -12,7 +12,7 @@ output: html_document
 > * Evaluate model quality and significance.
 
 ## Preliminaries
-Bar charts are useful for displaying count data, for example, but are often used to portray statistical information that they don't represent well ([see 'Kick the bar chart habit'. 2014. Nat Meth, 11: 113])(http://www.nature.com/nmeth/journal/v11/n2/full/nmeth.2837.html). As an alternative to bar charts, we'll build boxplots from a multi-system survey of mouse physiology in 8 inbred founder strains and 54 F1 hybrids of the Collaborative Cross. The study is described in [Lenarcic et al, 2012](http://www.genetics.org/content/190/2/413.full). For more information about this data set, see the [CGDpheno3 data](http://phenome.jax.org/db/q?rtn=projects/details&id=439) at Mouse Phenome Database. 
+Bar charts are useful for displaying count data, for example, but are often used to portray statistical information that they don't represent well. In this lesson we'll learn to ['Kick the bar chart habit'](http://www.nature.com/nmeth/journal/v11/n2/full/nmeth.2837.html) by creating box plots as an alternative to bar charts. This lesson uses data from a multi-system survey of mouse physiology in 8 inbred founder strains and 54 F1 hybrids of the Collaborative Cross. The study is described in [Lenarcic et al, 2012](http://www.genetics.org/content/190/2/413.full). For more information about this data set, see the [CGDpheno3 data](http://phenome.jax.org/db/q?rtn=projects/details&id=439) at Mouse Phenome Database. 
 
 #### Load packages and libraries
 Load the ggplot and scales libraries. You'll need to install the packages
@@ -104,6 +104,10 @@ ggplot(data = cc_data, mapping = aes(x = reorder(strain, RBC, FUN = "mean", na.r
 ```
 
 You should see a purple square indicating the mean red blood cell value for each strain. Is it the same as the median value for each strain?
+Notice that the mean value is sensitive to outliers, while the median value is not sensitive
+to outliers. 
+Find the boxplot for WSBCASTF1. Notice that a single data point with a value greater than 11.5
+pulls the mean value for this strain far over to the right.
 
 Plot the data points over each boxplot. Since ggplot builds a plot layer by layer, the boxplot layer should come before the data points so as not to obscure them.
 ```{r fig.height=10, fig.width=10, warning=FALSE}
@@ -140,6 +144,7 @@ rbc_boxplot <- rbc_boxplot +
 rbc_boxplot
 ```
 
+#### Subsetting data
 Select a subset of the strains. Choose strains with the highest and lowest mean and median red blood cell counts.
 Include the parent strains of the F1s.
 ```{r fig.height=10, fig.width=10, warning=FALSE}
@@ -164,7 +169,8 @@ subset_boxplot
 
 This time there's no need to flip the axes since the strain names are legible on the 
 x-axis. 
-Plot the data points by sex. Draw the boxplots first, then layer the data points on top of the boxplots.
+Plot the data points by sex.The boxplots have already been drawn and saved in the variable
+subset_boxplot. Layer the data points on top of the boxplots.
 ```{r fig.height=10, fig.width=10, warning=FALSE}
 subset_boxplot <- subset_boxplot + 
   geom_point(aes(colour = sex))
