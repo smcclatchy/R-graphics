@@ -1,15 +1,18 @@
 ---
 title: "Boxplots with ggplot"
 author: "Sue McClatchy"
-date: "July 20, 2016"
-output: html_document
+date: "Aug 1, 2016"
+output: html_notebook
 ---
 
 ## Learning Objectives 
 > * Load data from a URL.
-> * Produce a scatterplot of data.
-> * Build and plot a linear model.
-> * Evaluate model quality and significance.
+> * Describe the anatomy of a box plot.
+> * Use box plots to compare mean and median values between groups.
+> * Order groups by mean value.
+> * Subset data.
+> * Describe some pitfalls of using bar charts to display or compare means.
+
 
 ## Preliminaries
 Bar charts are useful for displaying count data, for example, but are often used to portray statistical information that they don't represent well. In this lesson we'll learn to ['Kick the bar chart habit'](http://www.nature.com/nmeth/journal/v11/n2/full/nmeth.2837.html) by creating box plots as an alternative to bar charts. This lesson uses data from a multi-system survey of mouse physiology in 8 inbred founder strains and 54 F1 hybrids of the Collaborative Cross. The study is described in [Lenarcic et al, 2012](http://www.genetics.org/content/190/2/413.full). For more information about this data set, see the [CGDpheno3 data](http://phenome.jax.org/db/q?rtn=projects/details&id=439) at Mouse Phenome Database. 
