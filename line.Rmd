@@ -40,10 +40,10 @@ version
 The version of R is given as version.string, followed by the nickname for the version.
 
 #### Load data and explore
-Read in the [Sequence Read Archive](http://www.ncbi.nlm.nih.gov/Traces/sra/sra_stat.cgi) database growth file  and view structure.
+Read in the [Sequence Read Archive](https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?) database growth file  and view structure.
 
 ```{r}
-sra <- read.csv("http://www.ncbi.nlm.nih.gov/Traces/sra/sra_stat.cgi")
+sra <- read.csv("https://www.ncbi.nlm.nih.gov/Traces/sra/sra_stat.cgi")
 str(sra)
 ```
 
