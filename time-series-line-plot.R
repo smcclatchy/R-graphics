@@ -16,7 +16,7 @@ library(ggplot2)
 library(scales)
 
 # Read in the data from the Sequence Read Archive at NCBI.
-sra <- read.csv("http://www.ncbi.nlm.nih.gov/Traces/sra/sra_stat.cgi")
+sra <- read.csv("https://www.ncbi.nlm.nih.gov/Traces/sra/sra_stat.cgi")
 
 # What is the structure of the data?
 str(sra)
