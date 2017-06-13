@@ -1,8 +1,7 @@
 ---
 title: "Boxplots with ggplot"
 author: "Sue McClatchy"
-date: "Aug 1, 2016"
-output: html_notebook
+date: "June 13, 2017"
 ---
 
 ## Learning Objectives 
@@ -15,7 +14,7 @@ output: html_notebook
 
 
 ## Preliminaries
-Bar charts are useful for displaying count data, for example, but are often used to portray statistical information that they don't represent well. In this lesson we'll learn to ['Kick the bar chart habit'](http://www.nature.com/nmeth/journal/v11/n2/full/nmeth.2837.html) by creating box plots as an alternative to bar charts. This lesson uses data from a multi-system survey of mouse physiology in 8 inbred founder strains and 54 F1 hybrids of the Collaborative Cross. The study is described in [Lenarcic et al, 2012](http://www.genetics.org/content/190/2/413.full). For more information about this data set, see the [CGDpheno3 data](http://phenome.jax.org/db/q?rtn=projects/details&id=439) at Mouse Phenome Database. 
+Bar charts are useful for displaying count data, for example, but are often used to portray statistical information that they don't represent well. In this lesson we'll learn to ['Kick the bar chart habit'](http://www.nature.com/nmeth/journal/v11/n2/full/nmeth.2837.html) by creating box plots as an alternative to bar charts. This lesson uses data from a multi-system survey of mouse physiology in 8 inbred founder strains and 54 F1 hybrids of the Collaborative Cross. The study is described in [Lenarcic et al, 2012](http://www.genetics.org/content/190/2/413.full). For more information about this data set, see the [CGDpheno3 data](http://phenome.jax.org/projects/CGDpheno3) at Mouse Phenome Database. 
 
 #### Load packages and libraries
 Load the ggplot and scales libraries. You'll need to install the packages
@@ -41,7 +40,7 @@ The version of R is given as version.string, followed by the nickname for the ve
 #### Load data
 Load the data from this shortened URL. Mind the double quotes.
 ```{r}
-cc_data <- read.csv(file = "http://bit.ly/CGDpheno3")
+cc_data <- read.csv(file = "http://bit.ly/CGDPheno3")
 ```
 
 #### Explore data
