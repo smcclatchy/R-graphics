@@ -40,10 +40,10 @@ version
 The version of R is given as version.string, followed by the nickname for the version.
 
 #### Load data and explore
-Read in the [Sequence Read Archive](http://www.ncbi.nlm.nih.gov/Traces/sra/sra_stat.cgi) database growth file  and view structure.
+Read in the [Sequence Read Archive](https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?) database growth file  and view structure.
 
 ```{r}
-sra <- read.csv("http://www.ncbi.nlm.nih.gov/Traces/sra/sra_stat.cgi")
+sra <- read.csv("https://www.ncbi.nlm.nih.gov/Traces/sra/sra_stat.cgi")
 str(sra)
 ```
 
@@ -66,7 +66,7 @@ head(sra$date)
 str(sra)
 ```
 
-## Plotting with ggplot
+## Plotting with [ggplot](http://ggplot2.org/)
 Plot the number of bases and open access bases in SRA by layering lines over the time series on the x-axis. Use the ggplot() function, which is found in the ggplot2 library. Quick reminder of ggplot syntax: ggplot(data, mapping) + layer(). 
 Start by plotting bases alone on the y-axis.
 ```{r}
