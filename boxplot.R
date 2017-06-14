@@ -14,7 +14,7 @@
 
 library(ggplot2)
 
-cc_data <- read.csv(file="http://phenome.jax.org/grpdoc/MPD_projdatasets/CGDpheno3.csv")
+cc_data <- read.csv(file="http://phenomedoc.jax.org/MPD_projdatasets/CGDpheno3.csv")
 
 
 ################################################################
