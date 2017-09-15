@@ -1,95 +1,104 @@
 ---
-title: "Scatterplots and histograms with qplot()"
+title: "Scatterplots with qplot() and ggplot()"
 author: "Sue McClatchy"
-date: "October 15, 2015"
+date: "June 24, 2016"
 output: html_document
 ---
 
-## Learning Objectives
-1. Load data from a URL.
+#### Learning Objectives
+1. Read in data from a URL.
 2. Build a plot with qplot().
+3. Add a smoother to a scatterplot.
+4. View sexes in separate scatterplots.
+5. Build a plot with ggplot().
+6. Subset data.
 
-## Scatterplots with qplot and ggplot
+
+#### Scatterplots with qplot and ggplot
 R is a powerful language for data exploration and visualization. We will use the ggplot package developed by Hadley Wickham to build publication quality graphics. 
+
+Install the ggplot2 package. You can do this from the console, or alternatively from the *Packages* tab in the lower right panel.
+
+```{r eval = FALSE, warning=FALSE}
+install.packages("ggplot2")
+```
 
 Load the ggplot library.
 
-```{r}
+```{r warning=FALSE}
 library(ggplot2)
 ```
 
 Read in data by specifying a URL for the file argument. This file contains baseline survey data for the 8 inbred Collaborative Cross founder strains and 54 F1 hybrids. Measurements include blood, cardiovascular, bone, body size, weight, and composition. For more information about this data set, see the [CGDpheno3 data](http://phenome.jax.org/db/q?rtn=projects/details&id=439) at Mouse Phenome Database.
 
 ```{r}
-cc <- read.csv(file="http://phenome.jax.org/grpdoc/MPD_projdatasets/CGDpheno3.csv")
+cc_data <- read.csv(file="http://bit.ly/CGDpheno3")
 ```
 
-Let's look at the structure of the data. *str()* provides the data type for the `r nrow(cc)` rows and `r ncol(cc)` columns in the CC founder strain data. Animals are in rows and measurements in columns.
+Let's look at the structure of the data. *str()* provides the data type for the `r nrow(cc_data)` rows and `r ncol(cc_data)` columns in the cc_data founder strain data. Animals are in rows and measurements in columns.
 
 ```{r eval=FALSE}
-str(cc)
+str(cc_data)
 ```
 
 How many animals of each strain?
 
 ```{r eval=FALSE}
-sort(table(cc$strain))
+sort(table(cc_data$strain))
 ```
 
 How many of each by sex?
 
 ```{r eval=FALSE}
-table(cc$strain, cc$sex)
+table(cc_data$strain, cc_data$sex)
 ```
 
-## Quick plots with qplot()
+#### Quick plots with qplot()
 The *qplot()* or quickplot syntax will be very familiar if you use *plot()*. Here, use *qplot()* to create a scatterplot of red blood cells on the x axis by percent reticulocytes on the y.
 
 ```{r warning=FALSE}
-qplot(x=RBC, y=pctRetic, data = cc)
+qplot(x=RBC, y=pctRetic, data = cc_data)
 ```
 
-### Geoms
-*qplot()* and *ggplot()* define the type of plot you produce using geometric objects or *geoms*. The default geom for plotting x-y data points is a point, producing a scatterplot. If you only specify x, the default plot is a histogram. Let's try producing a histogram by specifying only x and not y.
-
-```{r warning=FALSE, message=FALSE}
-qplot(x=RBC, data = cc)
-```
-
-You can specify a list of *geoms* to apply to the plot, and they will be applied in the order given. Scatterplot red blood cells and reticulocytes, adding a smoother to identify any trend in the data. The default smoother is *loess*, which uses a smooth local regression.
+#### Geoms
+*qplot()* and *ggplot()* define the type of plot you produce using geometric objects or *geoms*. The default geom for plotting x-y data points is a point, producing a scatterplot. You can specify more than one *geom* by creating a list of *geoms* with the *c()* operator. They will be applied in the order given in the list. Scatterplot red blood cells against reticulocytes, adding a smoother to identify any trend in the data. The default smoother is *loess*, which uses a smooth local regression. Notice that at the extreme values uncertainty in the relationship increases, as indicated by the point-wise confidence interval.
 
 ```{r warning=FALSE, message=FALSE}
 qplot(x=RBC, 
       y=pctRetic, 
-      data = cc, 
+      data = cc_data, 
       geom = c("point", "smooth"))
 ```
 
-Notice that at the extreme values uncertainty in the relationship increases, as indicated by the point-wise confidence interval. You can turn off the point-wise confidence interval using the *se* argument. 
-
-```{r warning=FALSE, message=FALSE}
-qplot(x=RBC, 
-      y=pctRetic, 
-      data = cc, 
-      geom = c("point", "smooth"), 
-      se=FALSE)
-```
+There appears to be a negative correlation between red blood cells and percent reticulocytes, which are immmature red blood cells.
 
 You can color the data points by sex of the animal.
 
 ```{r warning=FALSE}
 qplot(x=RBC, 
       y=pctRetic,
-      data=cc, 
+      data=cc_data, 
       colour=sex)
 ```
 
-Add a title and label the axes. Add a smoother for males and females.
+Now add a separate smoother for males and females.
 
 ```{r warning=FALSE, message=FALSE}
 qplot(x=RBC, 
       y=pctRetic,
-      data=cc, 
+      data=cc_data, 
+      geom = c("point", "smooth"), 
+      colour=sex)
+```
+
+It doesn't appear that there's a big sex difference. If so, you would expect to see regression lines separated vertically. The negative correlation between reticulocytes and red blood cells persists.
+
+Add a title and label the axes.
+
+```{r warning=FALSE, message=FALSE}
+qplot(x=RBC, 
+      y=pctRetic,
+      data=cc_data, 
       geom = c("point", "smooth"), 
       colour=sex, 
       xlab="red blood cell count (n/uL)",
@@ -102,10 +111,158 @@ Use facets to view males and females separately.
 ```{r warning=FALSE, message=FALSE}
 qplot(x=RBC,
       y=pctRetic, 
-      data=cc, 
+      data=cc_data, 
       geom = c("point", "smooth"),
       facets = . ~ sex, 
       colour=sex)
 ```
 
-> Code Challenge: Choose two measurements from the cc data to scatterplot  with qplot(). Label the axes and include a title. Add a smoother and color the points by sex. Try facets to view the sexes separately.
+> Code Challenge: Choose two measurements from cc_data to scatterplot with qplot(). Label the axes and include a title. Add a smoother and color the points by sex. Try facets to view the sexes separately.
+
+#### ggplot() options
+
+*qplot()* is great for quick plots, however, the ggplot function offers greater control and specificity. *qplot()* is the simplest to use and its syntax is familiar, but gives the least control. *ggplot()* builds a plot layer by layer, much like Photoshop or other graphics software. The base syntax is *ggplot(data, mapping) + layer()*. Here, the data = cc_data, mapping = RBC by strain.
+
+```{r}
+ggplot(data = cc_data, mapping = aes(x=strain, y=RBC))
+```
+
+Why did I get this non-plot? Strain is on the x-axis (albeit with strain names smooshed together), RBC on the y, but why is nothing plotted? Remember that the base syntax is *ggplot(data, mapping) + layer()*.
+Add a layer with a *geom()*. Data are shown as points.
+
+```{r}
+ggplot(data = cc_data, mapping = aes(x=strain, y=RBC)) + geom_point()
+```
+
+You should get a warning message about missing values. This lets you know that there are 16 missing values, and that they have been removed. 
+Now the data points are plotted. Color the data points by sex using a secondary mapping of color to sex within *geom_point*.
+```{r warning=FALSE}
+ggplot(data = cc_data, mapping = aes(x=strain, y=RBC)) +
+  geom_point(mapping = aes(colour=sex))
+```
+
+Sort the strains by mean RBC values using the *reorder()* function, which takes a factor variable (strain) and a function (mean).
+```{r warning=FALSE}
+ggplot(data = cc_data, mapping = aes(x=reorder(strain, RBC, FUN="mean", na.rm=TRUE), y=RBC)) +
+  geom_point(mapping = aes(colour=sex))
+```
+
+Strains are now sorted by mean red blood cell count. We'll continue building this plot layer by layer. It's already quite complicated so for simplicity, save the basic plot as a variable and add more layers. 
+```{r warning=FALSE}
+rbc_plot <- ggplot(data = cc_data, mapping = aes(x=reorder(strain, RBC, FUN="mean", na.rm=TRUE), y=RBC)) +
+  geom_point(mapping = aes(colour=sex))
+```
+
+To view the plot saved as a variable, type the variable name.
+```{r warning=FALSE}
+rbc_plot
+```
+
+Add the mean value by strain to the plot as a point using the *stat_summary* layer.
+```{r warning=FALSE}
+rbc_plot + 
+  stat_summary(fun.y="mean", geom="point", colour="mediumpurple4")
+```
+
+The x-axis is still illegible since the strain names run together. For scatterplots, it's easy to flip the axes, however, many geoms in ggplot don't treat the x and y axes equally. We can use *coord_flip()* in this scatterplot to place strains on the y axis and RBC on the x.
+```{r warning=FALSE}
+rbc_plot + 
+  stat_summary(fun.y="mean", geom="point", colour="mediumpurple4") + 
+  coord_flip()
+```
+
+The strain labels are now on the y-axis, but they still over-run one another somewhat. Shrink them.
+```{r warning=FALSE}
+rbc_plot + 
+  stat_summary(fun.y="mean", geom="point", colour="mediumpurple4") + 
+  coord_flip() + 
+  theme(axis.text.y = element_text(size=rel(0.7)))
+``` 
+
+Add a title and x- and y-axis labels.
+```{r warning=FALSE}
+rbc_plot + 
+  stat_summary(fun.y="mean", geom="point", colour="mediumpurple4") + 
+  coord_flip() + 
+  theme(axis.text.y = element_text(size=rel(0.7))) +
+  ggtitle("Mean Red Blood Cells by Strain") + 
+  xlab("strain") + 
+  ylab("red blood cell count (n/uL)")
+``` 
+
+Instead of viewing data points by sex on the same plot, we can facet by sex. Remove the *stat_summary* layer.
+```{r warning=FALSE}
+rbc_plot + 
+  coord_flip() + 
+  theme(axis.text.y = element_text(size=rel(0.7))) +  
+  ggtitle("Mean Red Blood Cells by Strain") + 
+  xlab("strain") + 
+  ylab("red blood cell count (n/uL)") +
+  facet_grid(. ~ sex)
+```
+
+#### Subsetting data
+Subset the data to include strains with highest and lowest mean RBC and their progenitors or F1s.
+
+```{r warning=FALSE}
+cc_subset <- subset(cc_data, 
+                 strain %in% c("ACASTF1","A/J", "CAST/EiJ", "NOD/ShiLtJ", "NODCASTF1", "NODAF1", "APWKF1", "PWK/PhJ")==TRUE)
+```
+
+Plot the data subset.
+```{r warning=FALSE}
+ggplot(data = cc_subset, mapping = aes(x=reorder(strain, RBC, FUN="mean", na.rm=TRUE), y=RBC)) + 
+  geom_point(mapping = aes(colour=sex)) + 
+  coord_flip() + 
+  stat_summary(fun.y="mean", geom="point", colour="mediumpurple4")
+```
+
+Add a title and axis labels.
+```{r warning=FALSE}
+ggplot(data = cc_subset, mapping = aes(x=reorder(strain, RBC, FUN="mean", na.rm=TRUE), y=RBC)) + 
+  geom_point(mapping = aes(colour=sex)) + 
+  coord_flip() + 
+  stat_summary(fun.y="mean", geom="point", colour="mediumpurple4") +
+  ggtitle("Mean Red Blood Cells by Strain") + 
+  xlab("strain") + 
+  ylab("red blood cell count (n/uL)")
+```
+
+> Code Challenge: Choose two measurements from the cc_data to scatterplot with ggplot(). Choose from any of the following options:
+
+- color points by sex
+- reorder by mean, median, or standard deviation
+- save the plot as a variable
+- add a statistical summary (mean, median, sd)
+- flip the x- and y-axes
+- add a title and axis labels
+- facet by sex
+- subset the data and plot the subset
+
+#### Bonus
+Gary Churchill supplied the following two functions to create a scatterplot matrix. You can choose any number of phenotypes to scatterplot against one another. Correlation values for each pair of phenotypes appear in the upper triangle, and histograms for each phenotype appear along the diagonal. These functions don't use ggplot, but produce gorgeous scatterplot matrices that help to view the relationship between variables and their distributions. Execute the following code by selecting all of it and clicking the Run button. The *pairs()* function at the end creates the plot. Choose any phenotypes from the cc_data and list them within the square brackets.
+```{r warning=FALSE}
+panel.cor <- function(x, y, digits=2, prefix="", cex.cor, ...)
+{
+    usr <- par("usr"); on.exit(par(usr))
+    par(usr = c(0, 1, 0, 1))
+    r <- cor(x, y, use="complete.obs")
+    txt <- format(c(r, 0.123456789), digits=digits)[1]
+    txt <- paste(prefix, txt, sep="")
+    if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
+    text(0.5, 0.5, txt, cex = cex.cor*0.5, col=c("gray60", "black")[(abs(r)>0.65)+1])
+}
+
+panel.hist <- function(x, ...)
+{
+    usr <- par("usr"); on.exit(par(usr))
+    par(usr = c(usr[1:2],0,1.5) )
+    h <- hist(x, plot = FALSE)
+    breaks <- h$breaks; nB <- length(breaks)
+    y <- h$counts; y <- y/max(y)
+    rect(breaks[-nB], 0, breaks[-1], y, col="cyan", ...)
+}
+
+pairs(cc_data[,c("LTM", "PLT", "WBC", "RBC")],
+	upper.panel = panel.cor, diag.panel = panel.hist)
+```
